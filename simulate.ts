@@ -1,5 +1,6 @@
 
 // constants
+import { Categ, LineController, PointElement, LinearScaleoryScale, Chart, Legend, Title, Tooltip, LineElement, LinearScale } from "chart.js"
 import { activation_energy_KJ, frequency_factor, reaction_enthalpy, volume, heat_capacity, cooling_constant, T_env, R } from "./constants"
 import { arrhenius_equation } from "./utils"
 import { rk4, type State } from "./utils"
@@ -111,7 +112,10 @@ function assert_valid(state: ReactorState): void {
         T: 700,
     }
 
-    const steps = 3
+    var state_history: ReactorState[] = []
+    state_history.push(state)
+
+    const steps = 1000
     for (let i = 0; i < steps; i++) {
         const k_c = equilibriumConstant(deltaG(state.T), state.T)
         const Q = reactionQuotient(state.N2, state.H2, state.NH3)
@@ -136,18 +140,92 @@ function assert_valid(state: ReactorState): void {
         sim_state.t += sim_state.dt
 
         state = step(sim_state, state)
-
+        state_history.push(state)
         assert_valid(state)
 
-        // console.log(
-        //     `step: ${i}\n` +
-        //     `t: ${sim_state.t}\n` +
-        //     `\tN2: ${state.N2}\n` +
-        //     `\tH2: ${state.H2}\n` +
-        //     `\tNH3: ${state.NH3}\n` +
-        //     `\tT: ${state.T}`
-        // );
-        sim_state.t += sim_state.dt
+        sim_state = update_simulation_state(sim_state)
     }
+    plot_state_history(sim_state, state_history)
 }
 )()
+
+
+function update_simulation_state(sim: SimulatorState): SimulatorState {
+    return {
+        t: sim.t + sim.dt,
+        dt: sim.dt
+    }
+}
+
+function plot_state_history(sim_state: SimulatorState, state_history: ReactorState[]): void {
+    const ctx = document.getElementById("myChart") as HTMLCanvasElement;
+    Chart.register(
+        LineController,
+        LineElement,
+        PointElement,
+        Title,
+        Tooltip,
+        Legend, LinearScale,
+    );
+    new Chart(ctx, {
+        type: "line",
+
+        data: {
+            datasets: [{
+                label: "N2",
+                data: state_history.map(p => ({
+                    x: sim_state.t,
+                    y: p.N2
+                })),
+                borderWidth: 1,
+            },
+            {
+                label: "H2",
+                data: state_history.map(p => ({
+                    x: sim_state.t,
+                    y: p.H2
+                })),
+                borderWidth: 1,
+            },
+            {
+                label: "NH3",
+                data: state_history.map(p => ({
+                    x: sim_state.t,
+                    y: p.NH3
+                })),
+                borderWidth: 1,
+            },
+            {
+                label: "T",
+                data: state_history.map(p => ({
+                    x: sim_state.t,
+                    y: p.T
+                })),
+                borderWidth: 1,
+            }
+                , {
+                label: "Q",
+                data: state_history.map(p => ({
+                    x: sim_state.t,
+                    y: reactionQuotient(p.N2, p.H2, p.NH3)
+                })),
+                borderWidth: 1,
+            }
+                , {
+                label: "k_c",
+                data: state_history.map(p => ({
+                    x: sim_state.t,
+                    y: equilibriumConstant(deltaG(p.T), p.T)
+                })),
+                borderWidth: 1,
+            }
+            ]
+        },
+        options: {
+            parsing: false,
+            scales: {
+                x: { type: "linear", position: "bottom" }
+            }
+        }
+    })
+}
