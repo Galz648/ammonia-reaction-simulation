@@ -1,6 +1,6 @@
 
 // constants
-import { Categ, LineController, PointElement, LinearScaleoryScale, Chart, Legend, Title, Tooltip, LineElement, LinearScale } from "chart.js"
+import { LineController, PointElement, Chart, Legend, Title, Tooltip, LineElement, LinearScale } from "chart.js"
 import { activation_energy_KJ, frequency_factor, reaction_enthalpy, volume, heat_capacity, cooling_constant, T_env, R } from "./constants"
 import { arrhenius_equation } from "./utils"
 import { rk4, type State } from "./utils"
@@ -16,6 +16,7 @@ export type ReactorState = {
     NH3: number
     T: number,
 }
+
 
 export type SimulatorState = {
     t: number,
@@ -112,8 +113,13 @@ function assert_valid(state: ReactorState): void {
         T: 700,
     }
 
-    var state_history: ReactorState[] = []
-    state_history.push(state)
+
+
+    var state_history: { time: number, state: ReactorState }[] = []
+    state_history.push({
+        time: sim_state.t,
+        state: state
+    })
 
     const steps = 1000
     for (let i = 0; i < steps; i++) {
@@ -138,9 +144,8 @@ function assert_valid(state: ReactorState): void {
             `\tk_c: ${k_c}`
         );
         sim_state.t += sim_state.dt
-
         state = step(sim_state, state)
-        state_history.push(state)
+        state_history.push({ time: sim_state.t, state })
         assert_valid(state)
 
         sim_state = update_simulation_state(sim_state)
@@ -157,7 +162,7 @@ function update_simulation_state(sim: SimulatorState): SimulatorState {
     }
 }
 
-function plot_state_history(sim_state: SimulatorState, state_history: ReactorState[]): void {
+function plot_state_history(sim_state: SimulatorState, state_history: { time: number, state: ReactorState }[]): void {
     const ctx = document.getElementById("myChart") as HTMLCanvasElement;
     Chart.register(
         LineController,
@@ -173,49 +178,59 @@ function plot_state_history(sim_state: SimulatorState, state_history: ReactorSta
         data: {
             datasets: [{
                 label: "N2",
+                type: "line",
+                backgroundColor: "red",
                 data: state_history.map(p => ({
-                    x: sim_state.t,
-                    y: p.N2
+                    x: p.time,
+                    y: p.state.N2
                 })),
                 borderWidth: 1,
             },
             {
                 label: "H2",
+                type: "line",
+                backgroundColor: "blue",
                 data: state_history.map(p => ({
-                    x: sim_state.t,
-                    y: p.H2
+                    x: p.time,
+                    y: p.state.H2
                 })),
                 borderWidth: 1,
             },
             {
                 label: "NH3",
+                type: "line",
+                backgroundColor: "green",
                 data: state_history.map(p => ({
-                    x: sim_state.t,
-                    y: p.NH3
+                    x: p.time,
+                    y: p.state.NH3
                 })),
                 borderWidth: 1,
             },
             {
                 label: "T",
+                type: "line",
+                backgroundColor: "yellow",
                 data: state_history.map(p => ({
-                    x: sim_state.t,
-                    y: p.T
+                    x: p.time,
+                    y: p.state.T
                 })),
                 borderWidth: 1,
             }
                 , {
                 label: "Q",
+                type: "line",
+                backgroundColor: "purple",
                 data: state_history.map(p => ({
-                    x: sim_state.t,
-                    y: reactionQuotient(p.N2, p.H2, p.NH3)
+                    x: p.time,
+                    y: reactionQuotient(p.state.N2, p.state.H2, p.state.NH3)
                 })),
                 borderWidth: 1,
             }
                 , {
                 label: "k_c",
                 data: state_history.map(p => ({
-                    x: sim_state.t,
-                    y: equilibriumConstant(deltaG(p.T), p.T)
+                    x: p.time,
+                    y: equilibriumConstant(deltaG(p.state.T), p.state.T)
                 })),
                 borderWidth: 1,
             }
