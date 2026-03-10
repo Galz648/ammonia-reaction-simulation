@@ -108,7 +108,7 @@ function assert_valid(state: ReactorState): void {
         N2: 1.0,
         H2: 3.0,
         NH3: 0.0,
-        T: 298,
+        T: 700,
     }
 
     const steps = 3
@@ -127,14 +127,14 @@ function assert_valid(state: ReactorState): void {
 
         assert_valid(state)
 
-        console.log(
-            `step: ${i}\n` +
-            `t: ${sim_state.t}\n` +
-            `\tN2: ${state.N2}\n` +
-            `\tH2: ${state.H2}\n` +
-            `\tNH3: ${state.NH3}\n` +
-            `\tT: ${state.T}`
-        );
+        // console.log(
+        //     `step: ${i}\n` +
+        //     `t: ${sim_state.t}\n` +
+        //     `\tN2: ${state.N2}\n` +
+        //     `\tH2: ${state.H2}\n` +
+        //     `\tNH3: ${state.NH3}\n` +
+        //     `\tT: ${state.T}`
+        // );
         sim_state.t += sim_state.dt
     }
 }
