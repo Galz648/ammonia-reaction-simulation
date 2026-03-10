@@ -4,10 +4,9 @@
 
 - guardrails:
     - cap dt to a fraction, to prevent simulation explosions (min(dt, 0.05))
-  - max(concentrations, 0)
-- tests: 
-    - 
+  - max(concentrations, 0) 
 
+- Check that graph makes sense over time (graphing)
 
 
 The reaction should be dictated by three equations:

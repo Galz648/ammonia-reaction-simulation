@@ -113,13 +113,25 @@ function assert_valid(state: ReactorState): void {
 
     const steps = 3
     for (let i = 0; i < steps; i++) {
+        const k_c = equilibriumConstant(deltaG(state.T), state.T)
+        const Q = reactionQuotient(state.N2, state.H2, state.NH3)
+
+        if (k_c > Q) {
+            console.log("reaction is forward")
+        } else if (k_c < Q) {
+            console.log("reaction is reverse")
+        } else {
+            console.log("reaction is at equilibrium")
+        }
         console.log(
             `step: ${i}\n` +
             `t: ${sim_state.t}\n` +
             `\tN2: ${state.N2}\n` +
             `\tH2: ${state.H2}\n` +
             `\tNH3: ${state.NH3}\n` +
-            `\tT: ${state.T}`
+            `\tT: ${state.T}\n` +
+            `\tQ: ${Q}\n` +
+            `\tk_c: ${k_c}`
         );
         sim_state.t += sim_state.dt
 
