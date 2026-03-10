@@ -1,31 +1,22 @@
 
 // constants
+import { activation_energy_KJ, frequency_factor, reaction_enthalpy, volume, heat_capacity, cooling_constant, T_env, R } from "./constants"
 import { arrhenius_equation } from "./utils"
 import { rk4, type State } from "./utils"
-
-const delta_entropy = -0.198
-const frequency_factor = Math.pow(10, 10)
-const activation_energy_KJ = 250
-// const catalytic_activation_energy_KJ = 90
-const T_env = 298
-const heat_capacity = 1.0   // kJ/K
-const cooling_constant = 0.05  //  kJ/(K s)
-const volume = 1 // L
-const reaction_enthalpy = -46 // KJ/mol
 
 
 
 
 // State
 export type ReactorStateArray = [number, number, number, number]
-type ReactorState = {
+export type ReactorState = {
     N2: number
     H2: number
     NH3: number
     T: number,
 }
 
-type SimulatorState = {
+export type SimulatorState = {
     t: number,
     dt: number
 }
@@ -45,10 +36,28 @@ function reaction_rate(k_forward: number, N2_concentration: number, H2_concentra
     const r = k_forward * N2_concentration * Math.pow(H2_concentration, 3) - k_reverse * Math.pow(NH3_concentration, 2)
     return r
 }
+function equilibriumConstant(deltaG_kJ: number, T: number) {
+    // a thermodynamical calculation
+    const R = 0.008314 // kJ/(mol·K)
+    return Math.exp(-deltaG_kJ / (R * T))
+}
 
+function reactionQuotient(N2: number, H2: number, NH3: number) {
+    return (NH3 ** 2) / (N2 * (H2 ** 3))
+}
+
+function deltaG(T: number) {
+    // TODO: move to constants file
+    const deltaH = -92 // kJ/mol
+    const deltaS = -0.198 // kJ/mol·K
+    return deltaH - T * deltaS
+}
 function derivatives(t: number, arr: State): ReactorStateArray {
     const s = arrayToState(arr as ReactorStateArray)
-    const k_eq = Math.pow(s.NH3, 2) / (s.N2 * Math.pow(s.H2, 3))
+    // const k_eq = Math.pow(s.NH3, 2) / (s.N2 * Math.pow(s.H2, 3))
+    const dG = deltaG(s.T)
+    const k_eq = Math.exp(-dG / (R * s.T))
+    // const k_eq = equilibriumConstant
     const k_forward = arrhenius_equation(activation_energy_KJ, s.T, frequency_factor)
     const k_reverse = k_forward / k_eq
     const rate: number = reaction_rate(k_forward, s.H2, s.H2, s.NH3, k_reverse)
@@ -70,7 +79,7 @@ function derivatives(t: number, arr: State): ReactorStateArray {
     return results
 }
 // simulation
-function step(sim: SimulatorState, state: ReactorState): ReactorState {
+export function step(sim: SimulatorState, state: ReactorState): ReactorState {
 
     let y = stateToArray(state)
 

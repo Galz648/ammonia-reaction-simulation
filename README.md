@@ -1,5 +1,15 @@
 # ammonia-reaction-simulation
 
+### TODO:
+
+- guardrails:
+    - cap dt to a fraction, to prevent simulation explosions (min(dt, 0.05))
+  - max(concentrations, 0)
+- tests: 
+    - 
+
+
+
 The reaction should be dictated by three equations:
 
 - first rate equation expression (N₂ + 3H₂ ⇌ 2NH₃ <- is first rate)
@@ -18,16 +28,13 @@ KJ for energy kelvin for temperature
 - how to measure concentrations?
 - wrap around how to compute the reverse rate
 - how to calculate the pre-exponential factor
-- where does time come into play ? 
-- how to compute the number of moles reacted based on concentration and volume ? 
-
+- where does time come into play ?
+- how to compute the number of moles reacted based on concentration and volume ?
 
 ### Simulation Parameters
 
 - concentrations (N2, H2, NH3)
 - temperature
-
-
 
 ### Simulation pipeline
 
@@ -35,9 +42,7 @@ KJ for energy kelvin for temperature
 2. Compute equilibrium constant (thermodynamics)
 3. Compute reverse rate constant
 4. plug into rate law
-5. use rate in diff equations 
-
-
+5. use rate in diff equations
 
 To install dependencies:
 

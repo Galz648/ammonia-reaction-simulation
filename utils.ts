@@ -8,6 +8,8 @@ export function arrhenius_equation(activation_energy: number, temperature: numbe
     return k
 }
 
+
+
 export function getOrThrow<T>(arr: T[], i: number): T {
     const value = arr[i]
     if (value === undefined) {
