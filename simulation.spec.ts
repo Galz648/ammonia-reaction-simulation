@@ -40,7 +40,11 @@ describe("Reactor", () => {
 
         sim_state = {
             t: 0,
-            dt: 0.01
+            dt: 0.001,
+            dH2: 0,
+            dNH3: 0,
+            dN2: 0,
+            dT: 0,
         }
     })
     test("should increase product concentration (forward reaction) if there is none", () => {

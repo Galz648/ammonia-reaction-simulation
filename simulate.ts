@@ -20,7 +20,11 @@ export type ReactorState = {
 
 export type SimulatorState = {
     t: number,
-    dt: number
+    dt: number,
+    dH2: number,
+    dNH3: number,
+    dN2: number,
+    dT: number,
 }
 
 function arrayToState(arr: ReactorStateArray): ReactorState {
@@ -94,17 +98,24 @@ export function step(sim: SimulatorState, state: ReactorState): ReactorState {
 }
 
 
-function assert_valid(state: ReactorState): void {
+function assert_valid(sim_state: SimulatorState, state: ReactorState): void {
     if (state.T < 0) {
         throw new Error("Temperature(Kelvin) cannot be smaller than zero");
     }
 
-    // 
+    if (state.N2 < 0 || state.H2 < 0 || state.NH3 < 0) throw new Error("negative concentration")
+    if (![state.N2, state.H2, state.NH3, state.T].every(Number.isFinite)) throw new Error("NaN/Inf")
+    // stoichiometry consistency
+
 }
 (function game_loop() {
     var sim_state: SimulatorState = {
         t: 0,
-        dt: 0.01
+        dt: 0.01,
+        dH2: 0,
+        dNH3: 0,
+        dN2: 0,
+        dT: 0,
     }
     // initial conditions
     var state: ReactorState = {
@@ -146,7 +157,7 @@ function assert_valid(state: ReactorState): void {
         );
         state = step(sim_state, state)
         state_history.push({ time: sim_state.t, state })
-        assert_valid(state)
+        assert_valid(sim_state, state)
 
         sim_state = update_simulation_state(sim_state)
     }
@@ -156,14 +167,19 @@ function assert_valid(state: ReactorState): void {
 
 
 function update_simulation_state(sim: SimulatorState): SimulatorState {
-    return {
+    const new_sim_state: SimulatorState = {
         t: sim.t + sim.dt,
-        dt: sim.dt
+        dt: sim.dt,
+        dH2: sim.dH2,
+        dNH3: sim.dNH3,
+        dN2: sim.dN2,
+        dT: sim.dT,
     }
+    return new_sim_state
 }
 
 function plot_state_history(sim_state: SimulatorState, state_history: { time: number, state: ReactorState }[]): void {
-    const ctx = document.getElementById("myChart") as HTMLCanvasElement;
+    // const ctx = document.getElementById("myChart") as HTMLCanvasElement;
     Chart.register(
         LineController,
         LineElement,
@@ -173,96 +189,96 @@ function plot_state_history(sim_state: SimulatorState, state_history: { time: nu
         Legend, LinearScale,
     );
     // Plot composition and Q, k_c on "myChart"
-    new Chart(ctx, {
-        type: "line",
-        data: {
-            datasets: [
-                {
-                    label: "N2",
-                    type: "line",
-                    backgroundColor: "red",
-                    data: state_history.map(p => ({
-                        x: p.time,
-                        y: p.state.N2
-                    })),
-                    borderWidth: 1,
-                },
-                {
-                    label: "H2",
-                    type: "line",
-                    backgroundColor: "blue",
-                    data: state_history.map(p => ({
-                        x: p.time,
-                        y: p.state.H2
-                    })),
-                    borderWidth: 1,
-                },
-                {
-                    label: "NH3",
-                    type: "line",
-                    backgroundColor: "green",
-                    data: state_history.map(p => ({
-                        x: p.time,
-                        y: p.state.NH3
-                    })),
-                    borderWidth: 1,
-                },
-                {
-                    label: "Q",
-                    type: "line",
-                    backgroundColor: "purple",
-                    data: state_history.map(p => ({
-                        x: p.time,
-                        y: reactionQuotient(p.state.N2, p.state.H2, p.state.NH3)
-                    })),
-                    borderWidth: 1,
-                },
-                {
-                    label: "k_c",
-                    type: "line",
-                    backgroundColor: "orange",
-                    data: state_history.map(p => ({
-                        x: p.time,
-                        y: equilibriumConstant(deltaG(p.state.T), p.state.T)
-                    })),
-                    borderWidth: 1,
-                }
-            ]
-        },
-        options: {
-            parsing: false,
-            scales: {
-                x: { type: "linear", position: "bottom" }
-            }
-        }
-    });
+    // new Chart(ctx, {
+    //     type: "line",
+    //     data: {
+    //         datasets: [
+    //             {
+    //                 label: "N2",
+    //                 type: "line",
+    //                 backgroundColor: "red",
+    //                 data: state_history.map(p => ({
+    //                     x: p.time,
+    //                     y: p.state.N2
+    //                 })),
+    //                 borderWidth: 1,
+    //             },
+    //             {
+    //                 label: "H2",
+    //                 type: "line",
+    //                 backgroundColor: "blue",
+    //                 data: state_history.map(p => ({
+    //                     x: p.time,
+    //                     y: p.state.H2
+    //                 })),
+    //                 borderWidth: 1,
+    //             },
+    //             {
+    //                 label: "NH3",
+    //                 type: "line",
+    //                 backgroundColor: "green",
+    //                 data: state_history.map(p => ({
+    //                     x: p.time,
+    //                     y: p.state.NH3
+    //                 })),
+    //                 borderWidth: 1,
+    //             },
+    //             {
+    //                 label: "Q",
+    //                 type: "line",
+    //                 backgroundColor: "purple",
+    //                 data: state_history.map(p => ({
+    //                     x: p.time,
+    //                     y: reactionQuotient(p.state.N2, p.state.H2, p.state.NH3)
+    //                 })),
+    //                 borderWidth: 1,
+    //             },
+    //             {
+    //                 label: "k_c",
+    //                 type: "line",
+    //                 backgroundColor: "orange",
+    //                 data: state_history.map(p => ({
+    //                     x: p.time,
+    //                     y: equilibriumConstant(deltaG(p.state.T), p.state.T)
+    //                 })),
+    //                 borderWidth: 1,
+    //             }
+    //         ]
+    //     },
+    //     options: {
+    //         parsing: false,
+    //         scales: {
+    //             x: { type: "linear", position: "bottom" }
+    //         }
+    //     }
+    // });
 
     // Plot temperature on its own chart: expects a <canvas id="tempChart"></canvas> in the document
-    const tempCtx = document.getElementById("tempChart") as HTMLCanvasElement;
-    if (tempCtx) {
-        new Chart(tempCtx, {
-            type: "line",
-            data: {
-                datasets: [
-                    {
-                        label: "T (Temperature)",
-                        type: "line",
-                        backgroundColor: "yellow",
-                        borderColor: "yellow",
-                        data: state_history.map(p => ({
-                            x: p.time,
-                            y: p.state.T
-                        })),
-                        borderWidth: 2,
-                    }
-                ]
-            },
-            options: {
-                parsing: false,
-                scales: {
-                    x: { type: "linear", position: "bottom" }
-                }
-            }
-        });
-    }
+    // const tempCtx = document.getElementById("tempChart") as HTMLCanvasElement;
+    // if (tempCtx) {
+    //     new Chart(tempCtx, {
+    //         type: "line",
+    //         data: {
+    //             datasets: [
+    //                 {
+    //                     label: "T (Temperature)",
+    //                     type: "line",
+    //                     backgroundColor: "yellow",
+    //                     borderColor: "yellow",
+    //                     data: state_history.map(p => ({
+    //                         x: p.time,
+    //                         y: p.state.T
+    //                     })),
+    //                     borderWidth: 2,
+    //                 }
+    //             ]
+    //         },
+    //         options: {
+    //             parsing: false,
+    //             scales: {
+    //                 x: { type: "linear", position: "bottom" }
+    //             }
+    //         }
+    //     });
+    // }
 }
