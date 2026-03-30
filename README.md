@@ -4,6 +4,8 @@
 
 - [] - decouple the visualization logic of the simulation, by moving the code to
   an example > examples/
+- [] - resolve the naming conflict between reactor state and simulator state,
+  they are used interchangibly inside `rk4` intergrator function
 - [] - create public interface for the library The reaction should be dictated
   by three equations:
 

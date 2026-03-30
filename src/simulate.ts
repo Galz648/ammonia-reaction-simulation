@@ -5,13 +5,11 @@ import { type State } from "./utils"
 import type { SimulatorState } from "./simulator"
 
 
+interface Conditions {
+    simulator_state: SimulatorState,
+    reactor_state: ReactorState
 
-
-
-
-
-
-
+}
 function arrayToState(arr: ReactorStateArray): ReactorState {
     const [N2, H2, NH3, T] = arr
 
@@ -93,62 +91,53 @@ function assertValidReactorState(state: ReactorState): void {
     // stoichiometry consistency
 
 }
-(function gameLoop() {
-    let sim_state: SimulatorState = {
-        t: 0,
-        dt: 0.01,
-        dH2: 0,
-        dNH3: 0,
-        dN2: 0,
-        dT: 0,
-    }
-    // initial conditions
-    let state: ReactorState = {
-        N2: 1.0,
-        H2: 3.0,
-        NH3: 0.0,
-        T: 700,
-    }
+function stepHaberBoschReaction(conditions: Conditions) {
 
 
+    // const state_history: { state: Conditions }[] = [{ // TODO: should be returned or accepted handled by the called
+    //     state: conditions
+    // }]
 
-    const state_history: { time: number, state: ReactorState }[] = [{
-        time: sim_state.t,
-        state: state
-    }]
+    const k_c = equilibriumConstant(deltaG(conditions.reactor_state.T), conditions.reactor_state.T)
+    const Q = reactionQuotient(conditions.reactor_state.N2, conditions.reactor_state.H2, conditions.reactor_state.NH3)
 
-    const steps = 2000
-    for (let i = 0; i < steps; i++) { // TODO: change to while loop, to support a real game loop
-        const k_c = equilibriumConstant(deltaG(state.T), state.T)
-        const Q = reactionQuotient(state.N2, state.H2, state.NH3)
 
-        if (k_c > Q) {
-            console.log("reaction is forward")
-        } else if (k_c < Q) {
-            console.log("reaction is reverse")
-        } else {
-            console.log("reaction is at equilibrium")
-        }
-        console.log(
-            `step: ${i}\n` +
-            `t: ${sim_state.t}\n` +
-            `\tN2: ${state.N2}\n` +
-            `\tH2: ${state.H2}\n` +
-            `\tNH3: ${state.NH3}\n` +
-            `\tT: ${state.T}\n` +
-            `\tQ: ${Q}\n` +
-            `\tk_c: ${k_c}`
-        );
+    console.log(
+        `t: ${conditions.simulator_state.t}\n` +
+        `\tN2: ${conditions.reactor_state.N2}\n` +
+        `\tH2: ${conditions.reactor_state.H2}\n` +
+        `\tNH3: ${conditions.reactor_state.NH3}\n` +
+        `\tT: ${conditions.reactor_state.T}\n` +
+        `\tQ: ${Q}\n` +
+        `\tk_c: ${k_c}`
+    );
 
-        state = updateReactorState(sim_state, state)
-        sim_state = updateSimulationState(sim_state)
+    conditions.reactor_state = updateReactorState(conditions.simulator_state, conditions.reactor_state)
+    conditions.simulator_state = updateSimulationState(conditions.simulator_state)
 
-        assertValidReactorState(state)
-        state_history.push({ time: sim_state.t, state })
+    assertValidReactorState(conditions.reactor_state)
+    // state_history.push({ time: sim_state.t, state })
+
+}
+
+enum reactionDirection {
+    FORWARD,
+    BACKWARD,
+    EQULIBRIUM
+}
+
+function determineReactionDirection(k_c: number, Q: number): reactionDirection {
+    if (k_c > Q) {
+        console.log("reaction is forward")
+        return reactionDirection.FORWARD
+    } else if (k_c < Q) {
+        console.log("reaction is reverse")
+        return reactionDirection.BACKWARD
+    } else {
+        return reactionDirection.EQULIBRIUM
+        console.log("reaction is at equilibrium")
     }
 }
-)()
-
 
 function updateSimulationState(sim: SimulatorState): SimulatorState {
     const new_sim_state: SimulatorState = {
