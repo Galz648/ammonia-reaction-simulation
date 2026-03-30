@@ -3,6 +3,9 @@
   "exports": {
     ".": "./index.ts"
   },
+  "scripts": {
+    "lint": "bun run eslint"
+  },
   "type": "module",
   "devDependencies": {
     "@eslint/js": "^10.0.1",

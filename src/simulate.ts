@@ -1,7 +1,7 @@
 import type { ReactorState, ReactorStateArray } from "./reactor"
 import { activation_energy_KJ, frequency_factor, reaction_enthalpy, volume, heat_capacity, cooling_constant, T_env, R } from "./constants"
 import { arrhenius_equation, getOrThrow, type func } from "./utils"
-import {type State } from "./utils"
+import { type State } from "./utils"
 import type { SimulatorState } from "./simulator"
 
 
@@ -44,7 +44,7 @@ function deltaG(T: number) {
     return deltaH - T * deltaS
 }
 function derivatives(t: number, arr: State): ReactorStateArray {
-    const s = arrayToState(arr as ReactorStateArray)
+    const s = arrayToState(arr as ReactorStateArray)  // TODO: "lift" transformation to the caller
     // const k_eq = Math.pow(s.NH3, 2) / (s.N2 * Math.pow(s.H2, 3))
     const dG = deltaG(s.T)
     const k_eq = Math.exp(-dG / (R * s.T))
@@ -162,20 +162,20 @@ function updateSimulationState(sim: SimulatorState): SimulatorState {
     return new_sim_state
 }
 
-function step(sim_state: SimulatorState, reactor_state: ReactorState) {
+function step(state: SimulatorState, reactor_state: ReactorState) {
 
 }
 
 
-export function rk4(
+export function rk4( // An implementation of the rk4 algorithm - 4th order ODE numerical approximator
     f: func,
-    y0: State,
+    initial_simulation_state: State,
     t0: number,
     dt: number,
 ): ReactorStateArray {
 
     let t = t0;
-    let y = [...y0];
+    let y = [...initial_simulation_state];
 
     const k1 = f(t, y);
     const k2 = f(t + dt / 2, y.map((yi, j) => yi + dt * getOrThrow(k1, j) / 2));

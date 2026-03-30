@@ -7,6 +7,7 @@ export function arrhenius_equation(activation_energy: number, temperature: numbe
 
 
 export function getOrThrow<T>(arr: T[], i: number): T {
+    // TODO: call to this function call be replaced by a call to an object. similarly, returning a rust like Result<Ok(), Error()>
     const value = arr[i]
     if (value === undefined) {
         throw new Error("Out of bounds")
@@ -14,10 +15,8 @@ export function getOrThrow<T>(arr: T[], i: number): T {
     return value
 }
 
-export type State = number[] // TODO: change name - conflicts with 
-// export type State = number[]; // #mrns, #proteins
+export type State = number[] // TODO: name is semantically wrong, name should be determined after testing
 export type func = (t: number, y: State) => State
-export type func_extended = () => State
 
 
 
