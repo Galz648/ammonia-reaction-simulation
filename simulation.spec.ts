@@ -5,7 +5,7 @@ import { arrhenius_equation } from "./utils";
 
 import { expect, test, describe, beforeEach } from "bun:test";
 
-let sim_state: SimulatorState
+let sim_state: SimulatorState // TODO: could cause corrupted state, make sure to 
 
 // arrhenius equation
 // test function naming convention should_<expected_behavior>_when_<condition>

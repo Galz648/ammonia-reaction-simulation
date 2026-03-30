@@ -1,7 +1,8 @@
 {
   "name": "ammonia-reaction-simulation",
-  "module": "index.ts",
-  "main": "",
+  "exports": {
+    ".": "./index.ts"
+  },
   "type": "module",
   "devDependencies": {
     "@eslint/js": "^10.0.1",

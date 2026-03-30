@@ -2,19 +2,19 @@
 
 ### TODO:
 
-- separate logic from visualization
-- guardrails:
-  - cap dt to a fraction, to prevent simulation explosions (min(dt, 0.05))
-  - max(concentrations, 0)
-
-- Check that graph makes sense over time (graphing)
-
-The reaction should be dictated by three equations:
+- [] - decouple the visualization logic of the simulation, by moving the code to
+  an example > examples/
+- [] - create public interface for the library The reaction should be dictated
+  by three equations:
 
 - first rate equation expression (N₂ + 3H₂ ⇌ 2NH₃ <- is first rate)
 - Arrhenius equation (depends on temperature (T), activation energy (E_a),
   frequency factor (A))
 - Equlibrium constant K
+
+### Examples
+
+##### todo!
 
 ### Units
 
