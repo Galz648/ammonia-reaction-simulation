@@ -1,6 +1,6 @@
-import { activation_energy_KJ, frequency_factor } from "./constants";
-import { step, type ReactorState, type ReactorStateArray, type SimulatorState } from "./simulate";
-import { arrhenius_equation } from "./utils";
+import { activation_energy_KJ, frequency_factor } from "../src/constants";
+import { step, type ReactorState, type ReactorStateArray, type SimulatorState } from "../src/simulate";
+import { arrhenius_equation } from "../src/utils";
 
 
 import { expect, test, describe, beforeEach } from "bun:test";

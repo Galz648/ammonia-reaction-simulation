@@ -134,7 +134,7 @@ function assert_valid(sim_state: SimulatorState, state: ReactorState): void {
     })
 
     const steps = 2000
-    for (let i = 0; i < steps; i++) {
+    for (let i = 0; i < steps; i++) { // TODO: change to while loop, to support a real game loop
         const k_c = equilibriumConstant(deltaG(state.T), state.T)
         const Q = reactionQuotient(state.N2, state.H2, state.NH3)
 
@@ -161,7 +161,6 @@ function assert_valid(sim_state: SimulatorState, state: ReactorState): void {
 
         sim_state = update_simulation_state(sim_state)
     }
-    plot_state_history(sim_state, state_history)
 }
 )()
 
@@ -178,107 +177,4 @@ function update_simulation_state(sim: SimulatorState): SimulatorState {
     return new_sim_state
 }
 
-function plot_state_history(sim_state: SimulatorState, state_history: { time: number, state: ReactorState }[]): void {
-    // const ctx = document.getElementById("myChart") as HTMLCanvasElement;
-    Chart.register(
-        LineController,
-        LineElement,
-        PointElement,
-        Title,
-        Tooltip,
-        Legend, LinearScale,
-    );
-    // Plot composition and Q, k_c on "myChart"
-    // new Chart(ctx, {
-    //     type: "line",
-    //     data: {
-    //         datasets: [
-    //             {
-    //                 label: "N2",
-    //                 type: "line",
-    //                 backgroundColor: "red",
-    //                 data: state_history.map(p => ({
-    //                     x: p.time,
-    //                     y: p.state.N2
-    //                 })),
-    //                 borderWidth: 1,
-    //             },
-    //             {
-    //                 label: "H2",
-    //                 type: "line",
-    //                 backgroundColor: "blue",
-    //                 data: state_history.map(p => ({
-    //                     x: p.time,
-    //                     y: p.state.H2
-    //                 })),
-    //                 borderWidth: 1,
-    //             },
-    //             {
-    //                 label: "NH3",
-    //                 type: "line",
-    //                 backgroundColor: "green",
-    //                 data: state_history.map(p => ({
-    //                     x: p.time,
-    //                     y: p.state.NH3
-    //                 })),
-    //                 borderWidth: 1,
-    //             },
-    //             {
-    //                 label: "Q",
-    //                 type: "line",
-    //                 backgroundColor: "purple",
-    //                 data: state_history.map(p => ({
-    //                     x: p.time,
-    //                     y: reactionQuotient(p.state.N2, p.state.H2, p.state.NH3)
-    //                 })),
-    //                 borderWidth: 1,
-    //             },
-    //             {
-    //                 label: "k_c",
-    //                 type: "line",
-    //                 backgroundColor: "orange",
-    //                 data: state_history.map(p => ({
-    //                     x: p.time,
-    //                     y: equilibriumConstant(deltaG(p.state.T), p.state.T)
-    //                 })),
-    //                 borderWidth: 1,
-    //             }
-    //         ]
-    //     },
-    //     options: {
-    //         parsing: false,
-    //         scales: {
-    //             x: { type: "linear", position: "bottom" }
-    //         }
-    //     }
-    // });
 
-    // Plot temperature on its own chart: expects a <canvas id="tempChart"></canvas> in the document
-    // const tempCtx = document.getElementById("tempChart") as HTMLCanvasElement;
-    // if (tempCtx) {
-    //     new Chart(tempCtx, {
-    //         type: "line",
-    //         data: {
-    //             datasets: [
-    //                 {
-    //                     label: "T (Temperature)",
-    //                     type: "line",
-    //                     backgroundColor: "yellow",
-    //                     borderColor: "yellow",
-    //                     data: state_history.map(p => ({
-    //                         x: p.time,
-    //                         y: p.state.T
-    //                     })),
-    //                     borderWidth: 2,
-    //                 }
-    //             ]
-    //         },
-    //         options: {
-    //             parsing: false,
-    //             scales: {
-    //                 x: { type: "linear", position: "bottom" }
-    //             }
-    //         }
-    //     });
-    // }
-}
