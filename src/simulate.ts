@@ -5,7 +5,7 @@ import { type State } from "./utils"
 import type { SimulatorState } from "./simulator"
 
 
-interface Conditions {
+type Conditions = {
     simulator_state: SimulatorState,
     reactor_state: ReactorState
 
@@ -178,4 +178,9 @@ export function rk4( // An implementation of the rk4 algorithm - 4th order ODE n
     );
 
     return [...state_arr] as ReactorStateArray;
+}
+
+export {
+    stepHaberBoschReaction,
+    type Conditions
 }

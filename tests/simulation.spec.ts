@@ -27,4 +27,5 @@ let sim_state: SimulatorState // TODO: could cause corrupted state, make sure to
 
 describe("Simulation", () => {
     // initial conditions
+    // loop over `stepHaberBoschSimulation` function
 })
