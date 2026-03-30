@@ -1,5 +1,5 @@
 import { activation_energy_KJ, frequency_factor } from "../src/constants";
-import { step, type ReactorState, type ReactorStateArray, type SimulatorState } from "../src/simulate";
+import { updateReactorState, type ReactorState, type ReactorStateArray, type SimulatorState } from "../src/simulate";
 import { arrhenius_equation } from "../src/utils";
 
 
@@ -56,7 +56,7 @@ describe("Reactor", () => {
             T: 700
         }
 
-        const state = step(sim_state, initial_conditions)
+        const state = updateReactorState(sim_state, initial_conditions)
 
         // NH3 concentration should increase
         expect(state.NH3).toBeGreaterThan(initial_conditions.NH3)
