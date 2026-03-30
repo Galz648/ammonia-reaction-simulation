@@ -1,6 +1,6 @@
 import type { ReactorState, ReactorStateArray } from "./reactor"
 import { activation_energy_KJ, frequency_factor, reaction_enthalpy, volume, heat_capacity, cooling_constant, T_env, R } from "./constants"
-import { arrhenius_equation, getOrThrow, type func } from "./utils"
+import { arrhenius_equation, getOrThrow, type derive } from "./utils"
 import { type State } from "./utils"
 import type { SimulatorState } from "./simulator"
 
@@ -18,7 +18,7 @@ function arrayToState(arr: ReactorStateArray): ReactorState {
     return { N2, H2, NH3, T }
 }
 
-function stateToArray(s: ReactorState): number[] {
+function stateToArray(s: ReactorState): ReactorStateArray {
     return [s.N2, s.H2, s.NH3, s.T]
 }
 
@@ -73,12 +73,12 @@ function derivatives(t: number, arr: State): ReactorStateArray {
 // simulation
 export function updateReactorState(sim: SimulatorState, state: ReactorState): ReactorState {
 
-    let y = stateToArray(state)
+    const state_arr = stateToArray(state)
 
-    const reactor_state = rk4(derivatives, y, sim.t, sim.dt)
+    const reactor_state = rk4(derivatives, state_arr as State, sim.t, sim.dt)
 
 
-    const s = arrayToState(reactor_state) // TODO: move the tranformation to the caller
+    const s = arrayToState(reactor_state)
     return s
 }
 
@@ -94,7 +94,7 @@ function assertValidReactorState(state: ReactorState): void {
 
 }
 (function gameLoop() {
-    var sim_state: SimulatorState = {
+    let sim_state: SimulatorState = {
         t: 0,
         dt: 0.01,
         dH2: 0,
@@ -103,7 +103,7 @@ function assertValidReactorState(state: ReactorState): void {
         dT: 0,
     }
     // initial conditions
-    var state: ReactorState = {
+    let state: ReactorState = {
         N2: 1.0,
         H2: 3.0,
         NH3: 0.0,
@@ -112,7 +112,7 @@ function assertValidReactorState(state: ReactorState): void {
 
 
 
-    var state_history: { time: number, state: ReactorState }[] = [{
+    const state_history: { time: number, state: ReactorState }[] = [{
         time: sim_state.t,
         state: state
     }]
@@ -162,27 +162,24 @@ function updateSimulationState(sim: SimulatorState): SimulatorState {
     return new_sim_state
 }
 
-function step(state: SimulatorState, reactor_state: ReactorState) {
-
-}
 
 
-export function rk4( // An implementation of the rk4 algorithm - 4th order ODE numerical approximator
-    f: func,
+export function rk4( // An implementation of the rk4 algorithm - 4th order ODE numerical
+    derivative: derive,
     initial_simulation_state: State,
     t0: number,
     dt: number,
 ): ReactorStateArray {
 
-    let t = t0;
-    let y = [...initial_simulation_state];
+    const t = t0;
+    let state_arr = [...initial_simulation_state];
 
-    const k1 = f(t, y);
-    const k2 = f(t + dt / 2, y.map((yi, j) => yi + dt * getOrThrow(k1, j) / 2));
-    const k3 = f(t + dt / 2, y.map((yi, j) => yi + dt * getOrThrow(k2, j) / 2));
-    const k4 = f(t + dt, y.map((yi, j) => yi + dt * getOrThrow(k3, j)));
+    const k1 = derivative(t, state_arr as State);
+    const k2 = derivative(t + dt / 2, state_arr.map((yi, j) => yi + dt * getOrThrow(k1, j) / 2) as State);
+    const k3 = derivative(t + dt / 2, state_arr.map((yi, j) => yi + dt * getOrThrow(k2, j) / 2) as State);
+    const k4 = derivative(t + dt, state_arr.map((yi, j) => yi + dt * getOrThrow(k3, j)) as State);
 
-    y = y.map(
+    state_arr = state_arr.map(
         (yi, j) =>
             yi + (dt / 6) *
             (getOrThrow(k1, j) +
@@ -191,5 +188,5 @@ export function rk4( // An implementation of the rk4 algorithm - 4th order ODE n
                 getOrThrow(k4, j))
     );
 
-    return [...y] as ReactorStateArray;
+    return [...state_arr] as ReactorStateArray;
 }
