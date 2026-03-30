@@ -15,8 +15,8 @@ export function getOrThrow<T>(arr: T[], i: number): T {
     return value
 }
 
-export type State = number[] // TODO: name is semantically wrong, name should be determined after testing
-export type func = (t: number, y: State) => State
+export type State = [number, number, number, number] // TODO: name is semantically wrong, name should be determined after testing
+export type derive = (t: number, y: State) => State
 
 
 

@@ -4,7 +4,8 @@
     ".": "./index.ts"
   },
   "scripts": {
-    "lint": "bun run eslint"
+    "lint": "bun run eslint",
+    "fix": "bun run eslint --fix"
   },
   "type": "module",
   "devDependencies": {
