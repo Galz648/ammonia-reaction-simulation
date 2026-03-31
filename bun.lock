@@ -5,7 +5,6 @@
     "": {
       "name": "ammonia-reaction-simulation",
       "dependencies": {
-        "chart.js": "^4.5.1",
         "jiti": "^2.6.1",
       },
       "devDependencies": {
@@ -13,6 +12,7 @@
         "@types/bun": "latest",
         "@typescript-eslint/eslint-plugin": "^8.57.2",
         "@typescript-eslint/parser": "^8.57.2",
+        "chart.js": "^4.5.1",
         "eslint": "^10.1.0",
         "globals": "^17.4.0",
         "typescript-eslint": "^8.57.2",

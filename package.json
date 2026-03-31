@@ -1,6 +1,6 @@
 {
   "name": "ammonia-reaction-simulation",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "exports": {
     ".": "./index.ts"
   },
@@ -14,6 +14,7 @@
     "@types/bun": "latest",
     "@typescript-eslint/eslint-plugin": "^8.57.2",
     "@typescript-eslint/parser": "^8.57.2",
+    "chart.js": "^4.5.1",
     "eslint": "^10.1.0",
     "globals": "^17.4.0",
     "typescript-eslint": "^8.57.2"
@@ -22,7 +23,6 @@
     "typescript": "^6.0.2"
   },
   "dependencies": {
-    "chart.js": "^4.5.1",
     "jiti": "^2.6.1"
   }
 }
