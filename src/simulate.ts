@@ -5,10 +5,14 @@ import { type State } from "./utils"
 import type { SimulatorState } from "./simulator"
 
 
+type Controls = {
+    heat_input: number,
+}
+
 type Conditions = {
     simulator_state: SimulatorState,
-    reactor_state: ReactorState
-
+    reactor_state: ReactorState,
+    controls: Controls
 }
 function arrayToState(arr: ReactorStateArray): ReactorState {
     const [N2, H2, NH3, T] = arr
@@ -16,7 +20,15 @@ function arrayToState(arr: ReactorStateArray): ReactorState {
     return { N2, H2, NH3, T }
 }
 
-function stateToArray(s: ReactorState): ReactorStateArray {
+
+function updateSimulationTime(simulator_state: SimulatorState, t: number, dt: number): SimulatorState {
+    return {
+        ...simulator_state,
+        dt,
+        t
+    }
+}
+function stateToArray(s: ReactorState): ReactorStateArray { // TODO: change name - name doesn't reflect he fact that it converts the reactor state to an array of numbers
     return [s.N2, s.H2, s.NH3, s.T]
 }
 
@@ -41,39 +53,42 @@ function deltaG(T: number) {
     const deltaS = -0.198 // kJ/mol·K
     return deltaH - T * deltaS
 }
-function derivatives(t: number, arr: State): ReactorStateArray {
-    const s = arrayToState(arr as ReactorStateArray)  // TODO: "lift" transformation to the caller
-    // const k_eq = Math.pow(s.NH3, 2) / (s.N2 * Math.pow(s.H2, 3))
-    const dG = deltaG(s.T)
-    const k_eq = Math.exp(-dG / (R * s.T))
-    // const k_eq = equilibriumConstant
-    const k_forward = arrhenius_equation(activation_energy_KJ, s.T, frequency_factor)
-    const k_reverse = k_forward / k_eq
-    const rate: number = reactionRate(k_forward, s.N2, s.H2, s.NH3, k_reverse)
-    console.log({ k_forward, k_reverse, rate })
-    // change in concentrations
-    const dN2 = -rate
-    const dH2 = -3 * rate
-    const dNH3 = 2 * rate
-    // change in temperature
-    const dH = reaction_enthalpy * rate * volume
+// implement: wrapped derivatives is a closure that captures the controls, partially applied to the derivatives function
 
-    const dT = ((dH) / heat_capacity) - cooling_constant * (s.T - T_env)
+function wrappedDerivatives(controls: Controls): derive {
+    return function derivatives(t: number, arr: State): ReactorStateArray {
+        const s = arrayToState(arr as ReactorStateArray)  // TODO: "lift" transformation to the caller
+        // const k_eq = Math.pow(s.NH3, 2) / (s.N2 * Math.pow(s.H2, 3))
+        const dG = deltaG(s.T)
+        const k_eq = Math.exp(-dG / (R * s.T))
+        // const k_eq = equilibriumConstant
+        const k_forward = arrhenius_equation(activation_energy_KJ, s.T, frequency_factor)
+        const k_reverse = k_forward / k_eq
+        const rate: number = reactionRate(k_forward, s.N2, s.H2, s.NH3, k_reverse)
+        // change in concentrations
+        const dN2 = -rate
+        const dH2 = -3 * rate
+        const dNH3 = 2 * rate
+        // change in temperature
+        const dH = reaction_enthalpy * rate * volume
 
-    const results = [dN2, dH2, dNH3, dT] as ReactorStateArray
+        const dT = ((dH + controls.heat_input) / heat_capacity) - cooling_constant * (s.T - T_env)
 
-    if (results.some(x => !Number.isFinite(x))) {
-        console.log("bad derivative", { t, results })
-        throw new Error("NaN in derivative")
+        const results = [dN2, dH2, dNH3, dT] as ReactorStateArray
+
+        if (results.some(x => !Number.isFinite(x))) {
+            console.log("bad derivative", { t, results })
+            throw new Error("NaN in derivative")
+        }
+        return results
     }
-    return results
 }
 // simulation
-export function updateReactorState(sim: SimulatorState, state: ReactorState): ReactorState {
+export function updateReactorState(conditions: Conditions): ReactorState {
+    const derivatives = wrappedDerivatives(conditions.controls)
+    const state_arr = stateToArray(conditions.reactor_state)
 
-    const state_arr = stateToArray(state)
-
-    const reactor_state = rk4(derivatives, state_arr as State, sim.t, sim.dt)
+    const reactor_state = rk4(derivatives, state_arr as State, conditions.simulator_state.t, conditions.simulator_state.dt)
 
 
     const s = arrayToState(reactor_state)
@@ -91,13 +106,7 @@ function assertValidReactorState(state: ReactorState): void {
     // stoichiometry consistency
 
 }
-function stepHaberBoschReaction(conditions: Conditions) {
-
-
-    // const state_history: { state: Conditions }[] = [{ // TODO: should be returned or accepted handled by the called
-    //     state: conditions
-    // }]
-
+function stepHaberBoschReaction(conditions: Conditions): Conditions {
     const k_c = equilibriumConstant(deltaG(conditions.reactor_state.T), conditions.reactor_state.T)
     const Q = reactionQuotient(conditions.reactor_state.N2, conditions.reactor_state.H2, conditions.reactor_state.NH3)
 
@@ -112,12 +121,12 @@ function stepHaberBoschReaction(conditions: Conditions) {
         `\tk_c: ${k_c}`
     );
 
-    conditions.reactor_state = updateReactorState(conditions.simulator_state, conditions.reactor_state)
+    conditions.reactor_state = updateReactorState(conditions)
     conditions.simulator_state = updateSimulationState(conditions.simulator_state)
 
     assertValidReactorState(conditions.reactor_state)
-    // state_history.push({ time: sim_state.t, state })
 
+    return conditions
 }
 
 enum reactionDirection {
@@ -134,8 +143,8 @@ function determineReactionDirection(k_c: number, Q: number): reactionDirection {
         console.log("reaction is reverse")
         return reactionDirection.BACKWARD
     } else {
-        return reactionDirection.EQULIBRIUM
         console.log("reaction is at equilibrium")
+        return reactionDirection.EQULIBRIUM
     }
 }
 
@@ -182,5 +191,7 @@ export function rk4( // An implementation of the rk4 algorithm - 4th order ODE n
 
 export {
     stepHaberBoschReaction,
-    type Conditions
+    updateSimulationTime,
+    type Conditions,
+    type Controls,
 }

@@ -2,17 +2,24 @@
 
 ### TODO:
 
-- [] - decouple the visualization logic of the simulation, by moving the code to
-  an example > examples/
-- [] - resolve the naming conflict between reactor state and simulator state,
-  they are used interchangibly inside `rk4` intergrator function
-- [] - create public interface for the library The reaction should be dictated
-  by three equations:
+-
+  - [ ] Create a diagram that describes the reaction model, how external
+        distrubances affect the model, steady states, la chatelier's principle
+- [x] create public interface for the library The reaction should be dictated by
+      three equations:
+  - first rate equation expression (N₂ + 3H₂ ⇌ 2NH₃ <- is first rate)
+  - Arrhenius equation (depends on temperature (T), activation energy (E_a),
+    frequency factor (A))
+  - Equlibrium constant K
 
-- first rate equation expression (N₂ + 3H₂ ⇌ 2NH₃ <- is first rate)
-- Arrhenius equation (depends on temperature (T), activation energy (E_a),
-  frequency factor (A))
-- Equlibrium constant K
+  -
+  - [x] make adhoc solution for passing the controls to the simulation step
+        function `derivatives`, such as heat input, given by `Controls`
+  - [ ] decouple the visualization logic of the simulation, by moving the code
+        to an example > examples/
+-
+  - [ ] resolve the naming conflict between reactor state and simulator state,
+        they are used interchangibly inside `rk4` intergrator function
 
 ### Examples
 
